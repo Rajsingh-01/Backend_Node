@@ -14,24 +14,31 @@ const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
 
-// Allow CORS from frontend running on localhost:3000
-const corsOptions = {
-  origin: "http://localhost:3000",  // This allows your frontend at port 3000 to communicate with the backend at port 3001
-  methods: ["GET", "POST", "PUT", "DELETE"],  // Allow methods your API will accept
-  allowedHeaders: ["Content-Type", "Authorization"],  // Allow specific headers if needed
-};
+const allowedOrigins = [
+  "http://localhost:3000", // For local testing
+  "https://rajsite01.netlify.app", // ✅ Your Netlify domain
+];
 
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.error("Blocked by CORS:", origin);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
-app.use(cors(corsOptions));  // Apply CORS with custom options
 app.use(bodyParser.json());
-
-
 app.use("/api", contactRoutes);
-
-// Error Handling Middleware
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 3001; 
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
